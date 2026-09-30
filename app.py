@@ -14,7 +14,7 @@ load_dotenv()
 # PAGE CONFIG
 # =========================================================
 st.set_page_config(
-    page_title="MyChatGPT",
+    page_title="Swaraj ChatGpt",
     page_icon="✦",
     layout="wide",
     initial_sidebar_state="auto",
@@ -383,7 +383,7 @@ hr { border-color: var(--line); }
 # =========================================================
 with st.sidebar:
     st.markdown(
-        '<div class="brand"><span class="brand-mark">✦</span>MyChatGPT</div>',
+        '<div class="brand"><span class="brand-mark">✦</span>Swaraj chatGpt</div>',
         unsafe_allow_html=True,
     )
     st.markdown('<div class="tagline">A little more intelligence in your day.</div>', unsafe_allow_html=True)
