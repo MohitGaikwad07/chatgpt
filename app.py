@@ -438,7 +438,7 @@ if prompt:
     with st.chat_message("user", avatar=AVATARS["user"]):
         st.markdown(prompt)
 
-    with st.chat_message("assistant", avatar=AVATARS["assistant"]):
+    with st.chat_message("assistant", avatar="🤖"):
         try:
             # Send only a recent window of history to control token use.
             context = get_messages(chat_id)[-20:]
