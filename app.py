@@ -36,38 +36,32 @@ CORE BEHAVIOR:
 - Respect Swaraj as your primary user and collaborator.
 """
 
-QUICK_STARTERS = [
-    {
-        "icon": "💡",
-        "title": "Brainstorm AI ideas",
-        "subtitle": "Discover innovative project & startup concepts",
-        "prompt": "Give me 5 innovative, high-impact AI project ideas for my portfolio with technical stack recommendations.",
-    },
-    {
-        "icon": "💻",
-        "title": "Write & debug code",
-        "subtitle": "Generate clean Python or full-stack snippets",
-        "prompt": "Write a robust, production-ready Python script that fetches data from an API with exponential backoff and error handling.",
-    },
-    {
-        "icon": "📝",
-        "title": "Summarize & explain",
-        "subtitle": "Break down complex topics into clear logic",
-        "prompt": "Explain how modern transformer attention mechanisms work in simple, intuitive terms with an analogy.",
-    },
-    {
-        "icon": "⚡",
-        "title": "Plan & organize",
-        "subtitle": "Create actionable routines and roadmaps",
-        "prompt": "Design a high-productivity 7-day masterplan to sharpen advanced software engineering and system design skills.",
-    },
-]
+# Base64 helper for cosmic starry space background
+def get_background_base64():
+    bg_path = Path("assets/purple_space_bg.png")
+    if bg_path.exists():
+        with open(bg_path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    return ""
 
-# SVG Avatars for authentic ChatGPT feel
+BG_BASE64 = get_background_base64()
+BG_CSS = ""
+if BG_BASE64:
+    BG_CSS = f"""
+  background-image: 
+    radial-gradient(ellipse at 50% 15%, rgba(147, 51, 234, 0.22) 0%, rgba(12, 6, 20, 0.78) 75%),
+    url("data:image/png;base64,{BG_BASE64}") !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+"""
+
+# SVG Avatars for Purple Dark Theme
 ASSISTANT_AVATAR = (
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36' width='36' height='36'%3E"
     "%3Cdefs%3E%3ClinearGradient id='cgGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E"
-    "%3Cstop offset='0%25' stop-color='%2310a37f'/%3E%3Cstop offset='100%25' stop-color='%2319c37d'/%3E"
+    "%3Cstop offset='0%25' stop-color='%237c3aed'/%3E%3Cstop offset='100%25' stop-color='%23c084fc'/%3E"
     "%3C/linearGradient%3E%3C/defs%3E"
     "%3Crect width='36' height='36' rx='18' fill='url(%23cgGrad)'/%3E"
     "%3Cpath fill='%23ffffff' d='M18 7.5c-5.8 0-10.5 4.7-10.5 10.5 0 2.2.7 4.2 1.9 5.8l-1.2 4.4 4.5-1.2c1.6 1 3.4 1.5 5.3 1.5 5.8 0 10.5-4.7 10.5-10.5S23.8 7.5 18 7.5zm0 17.5c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.1.8.8-3-.2-.3c-.9-1.3-1.4-2.8-1.4-4.4 0-4.7 3.8-8.5 8.5-8.5s8.5 3.8 8.5 8.5-3.8 8.3-8.4 8.3z'/%3E"
@@ -78,7 +72,7 @@ ASSISTANT_AVATAR = (
 USER_AVATAR = (
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36' width='36' height='36'%3E"
     "%3Cdefs%3E%3ClinearGradient id='uGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E"
-    "%3Cstop offset='0%25' stop-color='%233b82f6'/%3E%3Cstop offset='100%25' stop-color='%238b5cf6'/%3E"
+    "%3Cstop offset='0%25' stop-color='%23581c87'/%3E%3Cstop offset='100%25' stop-color='%239333ea'/%3E"
     "%3C/linearGradient%3E%3C/defs%3E"
     "%3Crect width='36' height='36' rx='18' fill='url(%23uGrad)'/%3E"
     "%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-family='sans-serif' font-weight='700' font-size='16'%3ES%3C/text%3E"
@@ -200,115 +194,195 @@ if "chat_id" not in st.session_state:
     all_chats = get_chats()
     st.session_state.chat_id = all_chats[0][0] if all_chats else create_chat()
 
-if "queued_prompt" not in st.session_state:
-    st.session_state.queued_prompt = None
-
 
 # =========================================================
-# CHATGPT DARK THEME CSS
+# PURPLE DARK THEME & RESPONSIVE STYLING CSS
 # =========================================================
-st.markdown("""
+st.markdown(f"""
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&family=Material+Icons&display=swap">
+
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+/* --- Purple Theme Color Tokens --- */
+:root {{
+  --bg-app: #0c0614;
+  --bg-sidebar: rgba(14, 7, 26, 0.94);
+  --bg-input: rgba(26, 14, 46, 0.9);
+  --bg-card: rgba(30, 15, 52, 0.6);
+  --bg-card-hover: rgba(45, 22, 78, 0.75);
+  --border-subtle: rgba(168, 85, 247, 0.16);
+  --border-medium: rgba(168, 85, 247, 0.28);
+  --border-hover: rgba(192, 132, 252, 0.55);
+  --text-main: #f5f3ff;
+  --text-muted: #c4b5fd;
+  --text-dim: #8b7ca8;
+  --purple-primary: #9333ea;
+  --purple-hover: #a855f7;
+  --purple-light: #c084fc;
+  --purple-glow: rgba(168, 85, 247, 0.45);
+}}
 
-/* --- Root & Reset --- */
-:root {
-  --bg-app: #212121;
-  --bg-sidebar: #171717;
-  --bg-input: #2f2f2f;
-  --bg-card: #262626;
-  --bg-card-hover: #2f2f2f;
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.15);
-  --border-hover: rgba(255, 255, 255, 0.28);
-  --text-main: #ececec;
-  --text-muted: #8e8e8e;
-  --text-dim: #676767;
-  --emerald: #10a37f;
-  --emerald-hover: #19c37d;
-  --emerald-glow: rgba(16, 163, 127, 0.35);
-}
-
-* {
+/* Typography: Selective application to avoid overwriting ligature font icons */
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"],
+p, h1, h2, h3, h4, h5, h6, input, textarea, label {{
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   box-sizing: border-box;
-}
+}}
+
+/* PRESERVE STREAMLIT MATERIAL ICONS (Fixes double_arrow_right showing as text) */
+[data-testid="stIcon"],
+[data-testid="stIcon"] *,
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] *,
+[data-testid="stExpandSidebarButton"],
+[data-testid="stExpandSidebarButton"] *,
+.material-symbols-rounded,
+.material-symbols-outlined,
+.material-icons,
+[class*="material-symbols"],
+[class*="material-symbols"] *,
+[class*="material-icons"],
+[class*="material-icons"] *,
+span[translate="no"] {{
+  font-family: 'Material Symbols Rounded', 'Material Symbols Outlined', 'Material Icons' !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+  line-height: 1 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  display: inline-block !important;
+  white-space: nowrap !important;
+  word-wrap: normal !important;
+  direction: ltr !important;
+  -webkit-font-feature-settings: 'liga' !important;
+  -webkit-font-smoothing: antialiased !important;
+}}
 
 /* Hide default streamlit decorations */
-#MainMenu, footer, header[data-testid="stHeader"] .stDeployButton, [data-testid="stDecoration"] {
+#MainMenu, footer, header[data-testid="stHeader"] .stDeployButton, [data-testid="stDecoration"] {{
   display: none !important;
-}
+}}
 
-header[data-testid="stHeader"] {
+header[data-testid="stHeader"] {{
   background: transparent !important;
   border-bottom: none !important;
-}
+  height: 3.5rem !important;
+  z-index: 99999 !important;
+}}
 
-/* Main App background */
-.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+[data-testid="stAppToolbar"] {{
+  background: transparent !important;
+}}
+
+/* Sleek Purple Sidebar Toggle Button */
+[data-testid="stExpandSidebarButton"] {{
+  margin: 0.5rem 0.85rem !important;
+  background: rgba(30, 15, 52, 0.85) !important;
+  border: 1px solid rgba(168, 85, 247, 0.4) !important;
+  border-radius: 9px !important;
+  color: #c084fc !important;
+  padding: 5px 9px !important;
+  box-shadow: 0 0 14px rgba(147, 51, 234, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.2s ease !important;
+}}
+
+[data-testid="stExpandSidebarButton"]:hover {{
+  background: rgba(76, 29, 149, 0.9) !important;
+  border-color: #c084fc !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.6) !important;
+  transform: scale(1.05) !important;
+}}
+
+[data-testid="stExpandSidebarButton"] span {{
+  font-size: 1.25rem !important;
+  color: #d8b4fe !important;
+}}
+
+[data-testid="stSidebarCollapseButton"] {{
+  background: rgba(30, 15, 52, 0.75) !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+  border-radius: 9px !important;
+  color: #c084fc !important;
+  transition: all 0.2s ease !important;
+}}
+
+[data-testid="stSidebarCollapseButton"]:hover {{
+  background: rgba(76, 29, 149, 0.85) !important;
+  border-color: #c084fc !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.45) !important;
+}}
+
+/* Main App background with cosmic starry space wallpaper */
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {{
   background-color: var(--bg-app) !important;
+  {BG_CSS}
   color: var(--text-main) !important;
-}
+}}
 
-.block-container {
-  max-width: 820px !important;
+.block-container {{
+  max-width: 780px !important;
   padding: 1.5rem 1.2rem 8.5rem !important;
-}
+}}
 
 /* --- SIDEBAR STYLING --- */
-[data-testid="stSidebar"] {
+[data-testid="stSidebar"] {{
   background-color: var(--bg-sidebar) !important;
   border-right: 1px solid var(--border-subtle) !important;
-}
+  backdrop-filter: blur(18px) !important;
+}}
 
-[data-testid="stSidebar"] > div:first-child {
-  background-color: var(--bg-sidebar) !important;
+[data-testid="stSidebar"] > div:first-child {{
+  background-color: transparent !important;
   padding: 1rem 0.75rem !important;
-}
+}}
 
 /* Brand header in sidebar */
-.sidebar-brand-wrapper {
+.sidebar-brand-wrapper {{
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 0.4rem 0.5rem 1rem;
   border-bottom: 1px solid var(--border-subtle);
   margin-bottom: 1rem;
-}
+}}
 
-.sidebar-brand-logo {
+.sidebar-brand-logo {{
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--emerald), var(--emerald-hover));
+  background: linear-gradient(135deg, #7c3aed, #c084fc);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 12px var(--emerald-glow);
+  box-shadow: 0 0 14px var(--purple-glow);
   color: white;
   font-size: 14px;
-}
+}}
 
-.sidebar-brand-name {
+.sidebar-brand-name {{
   font-weight: 700;
   font-size: 1.05rem;
   letter-spacing: -0.02em;
   color: #ffffff;
-}
+}}
 
-.sidebar-section-title {
+.sidebar-section-title {{
   color: var(--text-dim);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin: 1.1rem 0.5rem 0.5rem;
-}
+}}
 
 /* New chat button */
 [data-testid="stSidebar"] .stButton.new-chat-button > button,
-[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:nth-child(2) .stButton > button {
-  background: #212121 !important;
+[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:nth-child(2) .stButton > button {{
+  background: rgba(35, 18, 62, 0.7) !important;
   border: 1px solid var(--border-medium) !important;
   color: var(--text-main) !important;
   border-radius: 10px !important;
@@ -318,17 +392,19 @@ header[data-testid="stHeader"] {
   transition: all 0.2s ease !important;
   text-align: left !important;
   justify-content: flex-start !important;
-}
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}}
 
-[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:nth-child(2) .stButton > button:hover {
-  background: #2a2a2a !important;
-  border-color: var(--border-hover) !important;
+[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:nth-child(2) .stButton > button:hover {{
+  background: rgba(59, 28, 105, 0.9) !important;
+  border-color: var(--purple-light) !important;
   color: #ffffff !important;
   transform: translateY(-1px);
-}
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.45) !important;
+}}
 
 /* Conversation item buttons */
-[data-testid="stSidebar"] .stButton > button {
+[data-testid="stSidebar"] .stButton > button {{
   border-radius: 8px !important;
   font-size: 0.85rem !important;
   padding: 0.45rem 0.65rem !important;
@@ -341,38 +417,39 @@ header[data-testid="stHeader"] {
   color: var(--text-muted) !important;
   background: transparent !important;
   border: 1px solid transparent !important;
-}
+}}
 
 /* Active chat button */
-[data-testid="stSidebar"] .stButton > button[kind="primary"] {
-  background-color: #262626 !important;
-  border: 1px solid var(--border-medium) !important;
+[data-testid="stSidebar"] .stButton > button[kind="primary"] {{
+  background-color: rgba(76, 29, 149, 0.5) !important;
+  border: 1px solid rgba(168, 85, 247, 0.45) !important;
   color: #ffffff !important;
   font-weight: 600 !important;
-}
+  box-shadow: 0 0 12px rgba(147, 51, 234, 0.25) !important;
+}}
 
-[data-testid="stSidebar"] .stButton > button:hover {
-  background-color: #212121 !important;
+[data-testid="stSidebar"] .stButton > button:hover {{
+  background-color: rgba(46, 21, 82, 0.6) !important;
   border-color: var(--border-subtle) !important;
   color: #ffffff !important;
-}
+}}
 
 /* Delete button styling */
-[data-testid="stSidebar"] .del-btn .stButton > button {
+[data-testid="stSidebar"] .del-btn .stButton > button {{
   text-align: center !important;
   justify-content: center !important;
   padding: 0.45rem 0.3rem !important;
   color: var(--text-dim) !important;
-}
+}}
 
-[data-testid="stSidebar"] .del-btn .stButton > button:hover {
-  background: rgba(239, 68, 68, 0.15) !important;
-  border-color: rgba(239, 68, 68, 0.3) !important;
-  color: #ef4444 !important;
-}
+[data-testid="stSidebar"] .del-btn .stButton > button:hover {{
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #f87171 !important;
+}}
 
 /* Sidebar user profile badge */
-.sidebar-user-footer {
+.sidebar-user-footer {{
   margin-top: 1.5rem;
   padding-top: 0.85rem;
   border-top: 1px solid var(--border-subtle);
@@ -381,253 +458,243 @@ header[data-testid="stHeader"] {
   gap: 10px;
   padding: 0.75rem 0.6rem;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-}
+  background: rgba(30, 14, 52, 0.4);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+}}
 
-.user-avatar-badge {
+.user-avatar-badge {{
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
   color: white;
-}
+}}
 
-.user-name-text {
+.user-name-text {{
   font-weight: 600;
   font-size: 0.88rem;
   color: #ffffff;
   line-height: 1.2;
-}
+}}
 
-.user-tier-text {
+.user-tier-text {{
   font-size: 0.72rem;
-  color: var(--emerald-hover);
+  color: var(--purple-light);
   display: flex;
   align-items: center;
   gap: 4px;
-}
+}}
 
-.user-tier-dot {
+.user-tier-dot {{
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--emerald);
-  box-shadow: 0 0 6px var(--emerald);
-}
+  background: var(--purple-hover);
+  box-shadow: 0 0 6px var(--purple-light);
+}}
 
 /* --- TOP NAVBAR --- */
-.top-navbar {
+.top-navbar {{
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.2rem 0 1.2rem;
   margin-bottom: 0.5rem;
-}
+}}
 
-.top-model-pill {
+.top-model-pill {{
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
+  background: rgba(30, 15, 52, 0.5);
+  border: 1px solid var(--border-medium);
   border-radius: 20px;
   padding: 6px 14px 6px 10px;
   font-size: 0.86rem;
   font-weight: 600;
   color: var(--text-main);
-  backdrop-filter: blur(8px);
-}
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}}
 
-.top-model-dot {
+.top-model-dot {{
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--emerald);
-  box-shadow: 0 0 8px var(--emerald);
-}
+  background: var(--purple-hover);
+  box-shadow: 0 0 8px var(--purple-light);
+}}
 
-.top-model-sub {
+.top-model-sub {{
   color: var(--text-muted);
   font-size: 0.75rem;
   font-weight: 500;
-}
+}}
 
 /* --- HERO FRONT PAGE BRANDING --- */
-.hero-wrapper {
+.hero-wrapper {{
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 7vh 1rem 2.8rem;
+  padding: 12vh 1rem 4rem;
   animation: fadeIn 0.4s ease-out;
-}
+}}
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeIn {{
+  from {{ opacity: 0; transform: translateY(8px); }}
+  to {{ opacity: 1; transform: translateY(0); }}
+}}
 
-.hero-emblem {
-  width: 64px;
-  height: 64px;
+.hero-emblem {{
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #10a37f, #19c37d);
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 35px var(--emerald-glow), 0 0 70px rgba(16, 163, 127, 0.15);
+  box-shadow: 0 0 35px var(--purple-glow), 0 0 70px rgba(124, 58, 237, 0.3);
   margin-bottom: 1.5rem;
-}
+  border: 1px solid rgba(216, 180, 254, 0.3);
+}}
 
-.hero-emblem svg {
+.hero-emblem svg {{
   width: 34px;
   height: 34px;
   color: #ffffff;
-}
+}}
 
-.hero-brand-title {
-  font-size: clamp(2.2rem, 5vw, 3.2rem);
+.hero-brand-title {{
+  font-size: clamp(2.3rem, 5.5vw, 3.4rem);
   font-weight: 700;
   letter-spacing: -0.04em;
   color: #ffffff;
-  margin: 0 0 0.55rem;
+  margin: 0 0 0.65rem;
   line-height: 1.1;
-}
+}}
 
-.hero-brand-title span {
-  background: linear-gradient(120deg, #ffffff 40%, #6ee7b7 100%);
+.hero-brand-title span {{
+  background: linear-gradient(120deg, #ffffff 25%, #d8b4fe 65%, #c084fc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
+}}
 
-.hero-brand-subtitle {
-  font-size: 1.15rem;
+.hero-brand-subtitle {{
+  font-size: 1.18rem;
   color: var(--text-muted);
   font-weight: 400;
-  margin: 0 0 2rem;
+  margin: 0;
   max-width: 500px;
-}
-
-/* Prompt starter cards */
-.prompt-grid-container .stButton > button {
-  background: var(--bg-card) !important;
-  border: 1px solid var(--border-subtle) !important;
-  border-radius: 14px !important;
-  padding: 0.95rem 1.1rem !important;
-  text-align: left !important;
-  justify-content: flex-start !important;
-  color: var(--text-main) !important;
-  min-height: 4.8rem !important;
-  width: 100% !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.prompt-grid-container .stButton > button:hover {
-  background: var(--bg-card-hover) !important;
-  border-color: var(--border-hover) !important;
-  color: #ffffff !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
-}
+}}
 
 /* --- CHAT MESSAGES STYLING --- */
-[data-testid="stChatMessage"] {
+[data-testid="stChatMessage"] {{
   background: transparent !important;
   border: none !important;
   padding: 1.25rem 0.5rem !important;
   gap: 1rem !important;
   margin-bottom: 0.25rem !important;
-}
+}}
 
 /* User Message Bubble */
-[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
-  background: rgba(47, 47, 47, 0.45) !important;
+[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]),
+[data-testid="stChatMessage"]:has([alt="user avatar"]) {{
+  background: rgba(59, 23, 98, 0.35) !important;
   border-radius: 16px !important;
-  border: 1px solid var(--border-subtle) !important;
-}
+  border: 1px solid var(--border-medium) !important;
+  backdrop-filter: blur(8px) !important;
+}}
 
 [data-testid="stChatMessage"] p,
-[data-testid="stChatMessage"] li {
+[data-testid="stChatMessage"] li {{
   line-height: 1.75;
   font-size: 1rem;
-  color: #ececec;
+  color: #f3e8ff;
   overflow-wrap: anywhere;
-}
+}}
 
 /* Code block formatting */
-pre {
-  background-color: #181818 !important;
+pre {{
+  background-color: rgba(18, 9, 36, 0.88) !important;
   border: 1px solid var(--border-medium) !important;
   border-radius: 10px !important;
   padding: 1rem !important;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
-}
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+}}
 
-code {
+code {{
   font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
-  color: #6ee7b7 !important;
+  color: #d8b4fe !important;
   font-size: 0.92rem !important;
-}
+}}
 
-pre code {
-  color: #e2e8f0 !important;
-}
+pre code {{
+  color: #f3e8ff !important;
+}}
 
 /* Blockquotes */
-blockquote {
-  border-left: 3px solid var(--emerald) !important;
+blockquote {{
+  border-left: 3px solid var(--purple-hover) !important;
   padding-left: 1rem !important;
   margin-left: 0 !important;
   color: var(--text-muted) !important;
-}
+}}
 
-/* --- CHAT INPUT & BOTTOM BAR --- */
-[data-testid="stBottom"] {
-  background: linear-gradient(180deg, transparent 0%, #212121 28%, #212121 100%) !important;
+/* --- COMPACT CHAT INPUT (SEARCH BAR SMALL) --- */
+[data-testid="stBottom"] {{
+  background: linear-gradient(180deg, transparent 0%, rgba(12, 6, 20, 0.85) 30%, #0c0614 100%) !important;
   padding-bottom: 1.2rem !important;
-}
+}}
 
-[data-testid="stBottom"] > div {
+[data-testid="stBottom"] > div {{
   background: transparent !important;
-  max-width: 820px !important;
+  max-width: 600px !important; /* Compact search bar width */
   margin: 0 auto !important;
-}
+  padding: 0 1rem !important;
+}}
 
-[data-testid="stChatInput"] {
+[data-testid="stChatInput"] {{
   background-color: var(--bg-input) !important;
   border: 1px solid var(--border-medium) !important;
-  border-radius: 26px !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
-  padding: 4px 8px 4px 14px !important;
+  border-radius: 24px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 14px rgba(147, 51, 234, 0.2) !important;
+  padding: 2px 8px 2px 14px !important;
+  max-width: 600px !important;
+  margin: 0 auto !important;
+  min-height: 44px !important;
+  backdrop-filter: blur(12px) !important;
   transition: all 0.2s ease !important;
-}
+}}
 
-[data-testid="stChatInput"]:focus-within {
-  border-color: rgba(255, 255, 255, 0.35) !important;
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.15) !important;
-}
+[data-testid="stChatInput"]:focus-within {{
+  border-color: rgba(192, 132, 252, 0.7) !important;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(168, 85, 247, 0.4) !important;
+}}
 
-[data-testid="stChatInput"] textarea {
+[data-testid="stChatInput"] textarea {{
   color: var(--text-main) !important;
-  font-size: 0.98rem !important;
+  font-size: 0.92rem !important;
   font-family: inherit !important;
   background: transparent !important;
-}
+  padding: 8px 0 !important;
+}}
 
-[data-testid="stChatInput"] textarea::placeholder {
-  color: var(--text-muted) !important;
-}
+[data-testid="stChatInput"] textarea::placeholder {{
+  color: var(--text-dim) !important;
+}}
 
-/* Upward circular send button */
-[data-testid="stChatInput"] button {
-  background-color: #ececec !important;
-  color: #171717 !important;
+/* Upward circular send button with Purple Glow */
+[data-testid="stChatInput"] button {{
+  background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+  color: #ffffff !important;
   border-radius: 50% !important;
   width: 32px !important;
   height: 32px !important;
@@ -638,42 +705,45 @@ blockquote {
   align-items: center !important;
   justify-content: center !important;
   border: none !important;
-  transition: all 0.15s ease !important;
-}
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.5) !important;
+  transition: all 0.18s ease !important;
+}}
 
-[data-testid="stChatInput"] button:disabled {
-  background-color: #3e3e3e !important;
-  color: #676767 !important;
+[data-testid="stChatInput"] button:disabled {{
+  background: rgba(88, 28, 135, 0.35) !important;
+  color: rgba(216, 180, 254, 0.35) !important;
+  box-shadow: none !important;
   opacity: 0.45 !important;
-}
+}}
 
-[data-testid="stChatInput"] button:hover:not(:disabled) {
-  background-color: #ffffff !important;
-  transform: scale(1.05) !important;
-}
+[data-testid="stChatInput"] button:hover:not(:disabled) {{
+  background: linear-gradient(135deg, #9333ea, #c084fc) !important;
+  box-shadow: 0 0 18px rgba(192, 132, 252, 0.8) !important;
+  transform: scale(1.06) !important;
+}}
 
-.chat-disclaimer {
+.chat-disclaimer {{
   text-align: center;
   font-size: 0.74rem;
   color: var(--text-dim);
   margin-top: 0.55rem;
-}
+}}
 
 /* Scrollbars */
-::-webkit-scrollbar {
+::-webkit-scrollbar {{
   width: 6px;
   height: 6px;
-}
-::-webkit-scrollbar-track {
+}}
+::-webkit-scrollbar-track {{
   background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+}}
+::-webkit-scrollbar-thumb {{
+  background: rgba(168, 85, 247, 0.22);
   border-radius: 8px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
-}
+}}
+::-webkit-scrollbar-thumb:hover {{
+  background: rgba(192, 132, 252, 0.45);
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -693,7 +763,6 @@ with st.sidebar:
     # New chat action
     if st.button("＋   New chat", key="new_chat_button", use_container_width=True):
         st.session_state.chat_id = create_chat()
-        st.session_state.queued_prompt = None
         st.rerun()
 
     st.markdown('<div class="sidebar-section-title">Recent Chats</div>', unsafe_allow_html=True)
@@ -718,7 +787,6 @@ with st.sidebar:
                 type="primary" if is_active else "secondary",
             ):
                 st.session_state.chat_id = cid
-                st.session_state.queued_prompt = None
                 st.rerun()
 
             with col_del:
@@ -731,7 +799,7 @@ with st.sidebar:
                     st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
 
-    # Bottom User profile badge (ChatGPT style)
+    # Bottom User profile badge
     st.markdown("""
     <div class="sidebar-user-footer">
       <div class="user-avatar-badge">S</div>
@@ -748,7 +816,6 @@ with st.sidebar:
 # =========================================================
 chat_id = st.session_state.chat_id
 messages = get_messages(chat_id)
-queued_prompt = st.session_state.pop("queued_prompt", None)
 
 # Top Bar Pill
 st.markdown("""
@@ -761,30 +828,25 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Front Page Hero when conversation is fresh
-if not messages and not queued_prompt:
+# Front Page Hero: Clean branding without prompt suggestion boxes
+if not messages:
     st.markdown("""
     <div class="hero-wrapper">
       <div class="hero-emblem">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <defs>
+            <linearGradient id="heroSparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#c084fc"/>
+            </linearGradient>
+          </defs>
+          <path d="M12 2L14.7 9.3L22 12L14.7 14.7L12 22L9.3 14.7L2 12L9.3 9.3L12 2Z" fill="url(#heroSparkleGrad)"/>
         </svg>
       </div>
       <h1 class="hero-brand-title"><span>Swaraj's ChatGPT</span></h1>
       <p class="hero-brand-subtitle">What can I help with today, Swaraj?</p>
     </div>
     """, unsafe_allow_html=True)
-
-    # Interactive ChatGPT Prompt Cards
-    st.markdown('<div class="prompt-grid-container">', unsafe_allow_html=True)
-    c1, c2 = st.columns(2, gap="small")
-    for idx, item in enumerate(QUICK_STARTERS):
-        target = c1 if idx % 2 == 0 else c2
-        card_text = f"{item['icon']}  {item['title']}\n\n{item['subtitle']}"
-        if target.button(card_text, key=f"quick_starter_{idx}", use_container_width=True):
-            st.session_state.queued_prompt = item["prompt"]
-            st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
 else:
     # Render all chat history messages
@@ -795,8 +857,8 @@ else:
         with st.chat_message(msg["role"], avatar=avatar_icon):
             st.markdown(msg["content"])
 
-# Bottom chat input bar
-user_input = st.chat_input("Message Swaraj's ChatGPT…") or queued_prompt
+# Bottom compact chat input bar
+user_input = st.chat_input("Message Swaraj's ChatGPT…")
 
 # Disclaimer under chatbox
 st.markdown(
