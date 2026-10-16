@@ -36,26 +36,38 @@ CORE BEHAVIOR:
 - Respect Swaraj as your primary user and collaborator.
 """
 
-# Base64 helper for cosmic starry space background
-def get_background_base64():
-    bg_path = Path("assets/purple_space_bg.png")
-    if bg_path.exists():
-        with open(bg_path, "rb") as f:
-            return base64.b64encode(f.read()).decode("utf-8")
-    return ""
+# =========================================================
+# PROCEDURAL COSMIC STARFIELD (PURE CODE SVG - NO IMAGE ASSET)
+# =========================================================
+def get_starfield_base64():
+    stars = []
+    # 180 stars distributed deterministically across 1920x1080 canvas
+    for i in range(180):
+        x = (i * 127 + 43) % 1920
+        y = (i * 181 + 71) % 1080
+        r = round(0.7 + ((i * 17) % 11) / 7.0, 1)
+        op = round(0.35 + ((i * 23) % 11) / 16.0, 2)
+        color = '#ffffff' if i % 3 == 0 else ('#e9d5ff' if i % 3 == 1 else '#c084fc')
+        stars.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="{color}" opacity="{op}"/>')
 
-BG_BASE64 = get_background_base64()
-BG_CSS = ""
-if BG_BASE64:
-    BG_CSS = f"""
-  background-image: 
-    radial-gradient(ellipse at 50% 15%, rgba(147, 51, 234, 0.22) 0%, rgba(12, 6, 20, 0.78) 75%),
-    url("data:image/png;base64,{BG_BASE64}") !important;
-  background-size: cover !important;
-  background-position: center center !important;
-  background-attachment: fixed !important;
-  background-repeat: no-repeat !important;
-"""
+    # Cosmic glowing sparkle cross stars
+    sparkles = [
+        (260, 150, 15), (540, 290, 12), (880, 120, 19), (1190, 220, 16), (1550, 160, 14), 
+        (380, 580, 13), (760, 440, 16), (1080, 620, 14), (1440, 520, 18), (620, 830, 15), 
+        (1260, 840, 14), (170, 780, 12), (1700, 750, 15), (940, 890, 13)
+    ]
+
+    for sx, sy, sz in sparkles:
+        stars.append(f'<circle cx="{sx}" cy="{sy}" r="{sz*2}" fill="#a855f7" opacity="0.18"/>')
+        stars.append(f'<circle cx="{sx}" cy="{sy}" r="{sz}" fill="#c084fc" opacity="0.4"/>')
+        stars.append(f'<circle cx="{sx}" cy="{sy}" r="3" fill="#ffffff" opacity="0.95"/>')
+        flare = f'M {sx} {sy-sz} Q {sx} {sy} {sx+sz} {sy} Q {sx} {sy} {sx} {sy+sz} Q {sx} {sy} {sx-sz} {sy} Q {sx} {sy} {sx} {sy-sz} Z'
+        stars.append(f'<path d="{flare}" fill="#ffffff" opacity="0.95"/>')
+
+    svg_content = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%"><rect width="1920" height="1080" fill="none"/>{"".join(stars)}</svg>'
+    return base64.b64encode(svg_content.encode("utf-8")).decode("utf-8")
+
+STARFIELD_B64 = get_starfield_base64()
 
 # SVG Avatars for Purple Dark Theme
 ASSISTANT_AVATAR = (
@@ -201,16 +213,14 @@ if "chat_id" not in st.session_state:
 st.markdown(f"""
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&family=Material+Icons&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 
 <style>
 /* --- Purple Theme Color Tokens --- */
 :root {{
-  --bg-app: #0c0614;
-  --bg-sidebar: rgba(14, 7, 26, 0.94);
-  --bg-input: rgba(26, 14, 46, 0.9);
-  --bg-card: rgba(30, 15, 52, 0.6);
-  --bg-card-hover: rgba(45, 22, 78, 0.75);
+  --bg-app: #090312;
+  --bg-sidebar: rgba(13, 6, 24, 0.94);
+  --bg-input: rgba(24, 13, 44, 0.92);
   --border-subtle: rgba(168, 85, 247, 0.16);
   --border-medium: rgba(168, 85, 247, 0.28);
   --border-hover: rgba(192, 132, 252, 0.55);
@@ -223,40 +233,112 @@ st.markdown(f"""
   --purple-glow: rgba(168, 85, 247, 0.45);
 }}
 
-/* Typography: Selective application to avoid overwriting ligature font icons */
+/* Typography: Selective application to avoid breaking font glyphs */
 html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"],
 p, h1, h2, h3, h4, h5, h6, input, textarea, label {{
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   box-sizing: border-box;
 }}
 
-/* PRESERVE STREAMLIT MATERIAL ICONS (Fixes double_arrow_right showing as text) */
-[data-testid="stIcon"],
-[data-testid="stIcon"] *,
-[data-testid="stSidebarCollapseButton"],
-[data-testid="stSidebarCollapseButton"] *,
-[data-testid="stExpandSidebarButton"],
+/* =========================================================
+   PERMANENT SIDEBAR ARROW FIX:
+   1. Suppress all raw text ligature text completely (font-size: 0)
+   2. Render crisp vector SVG double-chevron arrow via pseudo-element
+   ========================================================= */
 [data-testid="stExpandSidebarButton"] *,
-.material-symbols-rounded,
-.material-symbols-outlined,
-.material-icons,
-[class*="material-symbols"],
-[class*="material-symbols"] *,
-[class*="material-icons"],
-[class*="material-icons"] *,
-span[translate="no"] {{
-  font-family: 'Material Symbols Rounded', 'Material Symbols Outlined', 'Material Icons' !important;
-  font-weight: normal !important;
-  font-style: normal !important;
-  line-height: 1 !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  display: inline-block !important;
-  white-space: nowrap !important;
-  word-wrap: normal !important;
-  direction: ltr !important;
-  -webkit-font-feature-settings: 'liga' !important;
-  -webkit-font-smoothing: antialiased !important;
+[data-testid="stSidebarCollapseButton"] * {{
+  font-size: 0 !important;
+  line-height: 0 !important;
+  color: transparent !important;
+  visibility: hidden !important;
+}}
+
+[data-testid="stExpandSidebarButton"] {{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(28, 14, 50, 0.88) !important;
+  border: 1px solid rgba(168, 85, 247, 0.4) !important;
+  border-radius: 10px !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  margin: 0.5rem 0.85rem !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(168, 85, 247, 0.3) !important;
+  backdrop-filter: blur(12px) !important;
+  position: relative !important;
+  overflow: visible !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}}
+
+[data-testid="stExpandSidebarButton"]:hover {{
+  background: rgba(88, 28, 135, 0.95) !important;
+  border-color: #c084fc !important;
+  box-shadow: 0 0 22px rgba(168, 85, 247, 0.65) !important;
+  transform: scale(1.06) !important;
+}}
+
+/* Vector SVG Double Chevron Right (») */
+[data-testid="stExpandSidebarButton"]::before {{
+  content: "" !important;
+  display: block !important;
+  width: 20px !important;
+  height: 20px !important;
+  background-color: #c084fc !important;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='13 17 18 12 13 7'%3E%3C/polyline%3E%3Cpolyline points='6 17 11 12 6 7'%3E%3C/polyline%3E%3C/svg%3E") no-repeat center / contain !important;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='13 17 18 12 13 7'%3E%3C/polyline%3E%3Cpolyline points='6 17 11 12 6 7'%3E%3C/polyline%3E%3C/svg%3E") no-repeat center / contain !important;
+  filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.75)) !important;
+  transition: all 0.2s ease !important;
+}}
+
+[data-testid="stExpandSidebarButton"]:hover::before {{
+  background-color: #ffffff !important;
+  filter: drop-shadow(0 0 12px #c084fc) !important;
+}}
+
+/* Vector SVG Double Chevron Left («) inside sidebar */
+[data-testid="stSidebarCollapseButton"] {{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(28, 14, 50, 0.8) !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+  border-radius: 9px !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  position: relative !important;
+  overflow: visible !important;
+  transition: all 0.2s ease !important;
+}}
+
+[data-testid="stSidebarCollapseButton"]:hover {{
+  background: rgba(88, 28, 135, 0.9) !important;
+  border-color: #c084fc !important;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.5) !important;
+}}
+
+[data-testid="stSidebarCollapseButton"]::before {{
+  content: "" !important;
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  background-color: #c084fc !important;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='11 17 6 12 11 7'%3E%3C/polyline%3E%3Cpolyline points='18 17 13 12 18 7'%3E%3C/polyline%3E%3C/svg%3E") no-repeat center / contain !important;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='11 17 6 12 11 7'%3E%3C/polyline%3E%3Cpolyline points='18 17 13 12 18 7'%3E%3C/polyline%3E%3C/svg%3E") no-repeat center / contain !important;
+  filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.75)) !important;
+  transition: all 0.2s ease !important;
+}}
+
+[data-testid="stSidebarCollapseButton"]:hover::before {{
+  background-color: #ffffff !important;
+  filter: drop-shadow(0 0 12px #c084fc) !important;
 }}
 
 /* Hide default streamlit decorations */
@@ -269,57 +351,29 @@ header[data-testid="stHeader"] {{
   border-bottom: none !important;
   height: 3.5rem !important;
   z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
 }}
 
 [data-testid="stAppToolbar"] {{
   background: transparent !important;
 }}
 
-/* Sleek Purple Sidebar Toggle Button */
-[data-testid="stExpandSidebarButton"] {{
-  margin: 0.5rem 0.85rem !important;
-  background: rgba(30, 15, 52, 0.85) !important;
-  border: 1px solid rgba(168, 85, 247, 0.4) !important;
-  border-radius: 9px !important;
-  color: #c084fc !important;
-  padding: 5px 9px !important;
-  box-shadow: 0 0 14px rgba(147, 51, 234, 0.3) !important;
-  backdrop-filter: blur(10px) !important;
-  transition: all 0.2s ease !important;
-}}
-
-[data-testid="stExpandSidebarButton"]:hover {{
-  background: rgba(76, 29, 149, 0.9) !important;
-  border-color: #c084fc !important;
-  color: #ffffff !important;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.6) !important;
-  transform: scale(1.05) !important;
-}}
-
-[data-testid="stExpandSidebarButton"] span {{
-  font-size: 1.25rem !important;
-  color: #d8b4fe !important;
-}}
-
-[data-testid="stSidebarCollapseButton"] {{
-  background: rgba(30, 15, 52, 0.75) !important;
-  border: 1px solid rgba(168, 85, 247, 0.3) !important;
-  border-radius: 9px !important;
-  color: #c084fc !important;
-  transition: all 0.2s ease !important;
-}}
-
-[data-testid="stSidebarCollapseButton"]:hover {{
-  background: rgba(76, 29, 149, 0.85) !important;
-  border-color: #c084fc !important;
-  color: #ffffff !important;
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.45) !important;
-}}
-
-/* Main App background with cosmic starry space wallpaper */
+/* =========================================================
+   COSMIC DARK PURPLE SPACE THEME (PURE CSS & SVG STARFIELD)
+   ========================================================= */
 .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {{
   background-color: var(--bg-app) !important;
-  {BG_CSS}
+  background-image: 
+    radial-gradient(ellipse 70% 50% at 50% 25%, rgba(126, 34, 206, 0.38) 0%, rgba(76, 29, 149, 0.22) 45%, transparent 75%),
+    radial-gradient(ellipse 55% 45% at 75% 45%, rgba(147, 51, 234, 0.28) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 40% at 20% 65%, rgba(107, 33, 168, 0.25) 0%, transparent 60%),
+    radial-gradient(circle at 50% 85%, rgba(88, 28, 135, 0.2) 0%, transparent 60%),
+    url("data:image/svg+xml;base64,{STARFIELD_B64}") !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
   color: var(--text-main) !important;
 }}
 
@@ -650,7 +704,7 @@ blockquote {{
 
 /* --- COMPACT CHAT INPUT (SEARCH BAR SMALL) --- */
 [data-testid="stBottom"] {{
-  background: linear-gradient(180deg, transparent 0%, rgba(12, 6, 20, 0.85) 30%, #0c0614 100%) !important;
+  background: linear-gradient(180deg, transparent 0%, rgba(9, 3, 18, 0.88) 30%, #090312 100%) !important;
   padding-bottom: 1.2rem !important;
 }}
 
